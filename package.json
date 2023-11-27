@@ -28,11 +28,12 @@
   "author": "patrick-at-389633136494 <> ()",
   "license": "MIT",
   "homepage": "https://patrick.com#readme",
-  "dependencies": {},
+  "dependencies": {
+    "expo-modules-core": "^1.5.12"
+  },
   "devDependencies": {
     "@types/react": "^18.0.25",
-    "expo-module-scripts": "^3.0.11",
-    "expo-modules-core": "^1.5.11"
+    "expo-module-scripts": "^3.0.11"
   },
   "peerDependencies": {
     "expo": "*",
