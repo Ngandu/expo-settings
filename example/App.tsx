@@ -1,10 +1,15 @@
 import * as Settings from 'expo-settings';
 import SerialPortAPI from 'react-native-serial-port-api';
 import * as React from 'react';
-import { Button, Text, View, Alert } from 'react-native';
+import { Button, Text, View, Alert, ScrollView } from 'react-native';
 
 export default function App() {
   const [theme, setTheme] = React.useState<string>(Settings.getTheme());
+
+  const [data,setData] = React.useState([]);
+  const [connected,setonnected] = React.useState<Boolean>(false);
+
+  let scannedData = [];
 
   SerialPortAPI.setSuPath("/system/xbin/su");
   let serialPort, sub;
@@ -24,19 +29,48 @@ export default function App() {
     Settings.requestp();
   }
 
-  async function requestUSBPermission() {
+
+
+  React.useEffect(()=>{
+    // console.log("data: ",data);
+  },[data])
+
+
+
+  async function connect() {
     try {
       SerialPortAPI.setSuPath("/system/xbin/su");
       serialPort = await SerialPortAPI.open("/dev/ttyS4", { baudRate: 115200 })
 
       console.log("serialPort: ",serialPort);
 
+      setonnected(true);
+
       let n = serialPort.getPath();
-      console.log(n);
+      // console.log(n);
 
       // subscribe received data
       sub = serialPort.onReceived(buff => {
-        console.log('Buff - ',buff.toString('hex').toUpperCase());
+        let trmp = buff.toString('hex').toUpperCase();
+        // console.log('Buff - ',trmp);
+
+        let strt = trmp.indexOf("A");
+
+        let barNum = trmp.slice(strt, strt+12);
+
+        console.log("barNum: ",barNum);
+
+        if(barNum.length == 0) return;
+
+        let exists = data.includes(barNum);
+
+        if(!exists){
+          setData((data) => [
+            ...data,
+            barNum
+          ]);
+        }
+
       })
 
       // unsubscribe
@@ -57,12 +91,22 @@ export default function App() {
   const nextTheme = theme === 'dark' ? 'light' : 'dark';
 
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>Theme: {Settings.getTheme()}</Text>
+    <View style={{ flex: 1 }}>
+      <View style={{flexDirection: "row"}}>
+      <Button onPress={connect} title={connected ? "disconnect" : "connect"}/>
+      <Text style={{paddingLeft: 20}}>Scaned: {data.length}</Text>
+      </View>
+      {/* <Text>Theme: {Settings.getTheme()}</Text>
       <Button title={`Set theme to ${nextTheme}`} onPress={() => Settings.setTheme(nextTheme)} />
       <Text>{Settings.boom()}</Text>
-      <Button title='show' onPress={sshow} />
-      <Button onPress={requestUSBPermission} title="Request  Permission"/>
+      <Button title='show' onPress={sshow} /> */}
+      <ScrollView style={{ flex: 1 }}>
+      {
+        data.map((item, i)=>{
+          return <Text style={{padding: 10, borderBottomWidth: 0.5, borderColor: "#dddddd"}} key={i}>{i+1} - {item}</Text>
+        })
+      }
+      </ScrollView>
     </View>
   );
 }
